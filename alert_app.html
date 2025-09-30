@@ -61,16 +61,21 @@
     // Family room or alert channel
     const alertPath = 'family_alert_room';
 
+    // Generate a unique client ID for this device/session
+    const clientId = '_' + Math.random().toString(36).substr(2, 9);
+
     const alertBtn = document.getElementById('alertBtn');
     const statusDiv = document.getElementById('status');
     const alertSound = document.getElementById('alertSound');
 
     alertBtn.addEventListener('click', () => {
       const alertData = {
+        clientId: clientId,
         timestamp: Date.now(),
         message: 'Alert from family member!',
       };
-      database.ref(alertPath).set(alertData)
+      // Push a new alert entry instead of set
+      database.ref(alertPath).push(alertData)
         .then(() => {
           statusDiv.textContent = 'Alert sent!';
           setTimeout(() => { statusDiv.textContent = ''; }, 3000);
@@ -81,11 +86,11 @@
         });
     });
 
-    // Listen for alerts
-    database.ref(alertPath).on('value', (snapshot) => {
+    // Listen for new alerts added
+    database.ref(alertPath).on('child_added', (snapshot) => {
       const data = snapshot.val();
-      if (data && data.timestamp) {
-        // Play sound and show alert
+      if (data && data.timestamp && data.clientId !== clientId) {
+        // Play sound and show alert only if not from this client
         alertSound.play();
         alert('ALERT: ' + data.message);
       }
