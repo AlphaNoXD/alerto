@@ -89,11 +89,14 @@
     // Listen for new alerts added
     database.ref(alertPath).on('child_added', (snapshot) => {
       const data = snapshot.val();
+      console.log('New alert received:', data);
       if (data && data.timestamp && data.clientId !== clientId) {
         // Play sound and show alert only if not from this client
-        alertSound.play();
+        alertSound.play().catch(e => console.warn('Alert sound play failed:', e));
         alert('ALERT: ' + data.message);
       }
+    }, (error) => {
+      console.error('Firebase child_added listener error:', error);
     });
   </script>
 </body>
