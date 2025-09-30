@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Family Alert App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      text-align: center;
+    }
+    button {
+      font-size: 1.5em;
+      padding: 15px 30px;
+      background-color: #ff4444;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:active {
+      background-color: #cc0000;
+    }
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h1>Family Alert App</h1>
+  <button id="alertBtn">Send Alert</button>
+  <div id="status"></div>
+
+  <audio id="alertSound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
+
+  <!-- Firebase App (the core Firebase SDK) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <!-- Firebase Realtime Database -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+  <script>
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDzzEFnxsOnSWZFkQ3E-R1c3r936wPvPxU",
+      authDomain: "alerto-ca4f5.firebaseapp.com",
+      databaseURL: "https://alerto-ca4f5-default-rtdb.firebaseio.com",
+      projectId: "alerto-ca4f5",
+      storageBucket: "alerto-ca4f5.firebasestorage.app",
+      messagingSenderId: "905633754463",
+      appId: "1:905633754463:web:aa880fc18cf3efcb09daea",
+      measurementId: "G-J9M0Q4GVEM"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Family room or alert channel
+    const alertPath = 'family_alert_room';
+
+    const alertBtn = document.getElementById('alertBtn');
+    const statusDiv = document.getElementById('status');
+    const alertSound = document.getElementById('alertSound');
+
+    alertBtn.addEventListener('click', () => {
+      const alertData = {
+        timestamp: Date.now(),
+        message: 'Alert from family member!',
+      };
+      database.ref(alertPath).set(alertData)
+        .then(() => {
+          statusDiv.textContent = 'Alert sent!';
+          setTimeout(() => { statusDiv.textContent = ''; }, 3000);
+        })
+        .catch((error) => {
+          statusDiv.textContent = 'Error sending alert: ' + error.message;
+          statusDiv.style.color = 'red';
+        });
+    });
+
+    // Listen for alerts
+    database.ref(alertPath).on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (data && data.timestamp) {
+        // Play sound and show alert
+        alertSound.play();
+        alert('ALERT: ' + data.message);
+      }
+    });
+  </script>
+</body>
+</html>
